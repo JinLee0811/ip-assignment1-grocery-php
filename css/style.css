@@ -1,0 +1,961 @@
+/* 전체 스타일 */
+:root {
+  --primary-color: #4caf50;
+  --primary-dark: #388e3c;
+  --primary-light: #a5d6a7;
+  --accent-color: #ffc107;
+  --text-color: #333333;
+  --text-light: #757575;
+  --background-light: #f9f9f9;
+  --danger-color: #f44336;
+  --danger-dark: #d32f2f;
+  --success-color: #4caf50;
+  --gray-light: #f1f1f1;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Noto Sans KR", "Roboto", sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--background-light);
+}
+
+/* 헤더 스타일 */
+header {
+  background-color: white;
+  padding: 1rem 0;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 50px;
+  margin-right: 0.5rem;
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: color 0.3s;
+  position: relative;
+}
+
+nav a:hover {
+  color: var(--primary-color);
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+  transition: width 0.3s;
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+.cart-icon {
+  position: relative;
+  cursor: pointer;
+}
+
+.cart-icon .count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* 검색창 스타일 */
+.search-container {
+  max-width: 1200px;
+  margin: 1rem auto;
+  padding: 0 1rem;
+}
+
+.search-box {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.search-box form {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+  font-size: 1rem;
+  min-width: 300px;
+  transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.search-box .clear-search {
+  background-color: #f5f5f5;
+  color: #999;
+  border: none;
+  padding: 0 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.search-box .clear-search:hover {
+  background-color: #e0e0e0;
+  color: #666;
+}
+
+.search-box .search-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0 1.2rem;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-box .search-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.search-box .search-button i {
+  font-size: 1.1rem;
+}
+
+/* 카테고리 스타일 */
+.categories {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.category-list {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.category-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.category-list::-webkit-scrollbar-thumb {
+  background-color: var(--primary-light);
+  border-radius: 2px;
+}
+
+.category-item {
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.category-item:hover,
+.category-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.subcategories {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.subcategory-item {
+  padding: 0.3rem 0.8rem;
+  background-color: var(--gray-light);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.subcategory-item:hover,
+.subcategory-item.active {
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* 메인 컨텐츠 스타일 */
+main {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.page-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--primary-dark);
+}
+
+/* 상품 그리드 스타일 */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.product-card {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-image {
+  width: 100%;
+  height: 200px;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.05);
+}
+
+.product-info {
+  padding: 1.2rem;
+}
+
+.product-info h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.unit {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.stock {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.in-stock {
+  color: var(--success-color);
+}
+
+.out-of-stock {
+  color: var(--danger-color);
+}
+
+.add-to-cart-form {
+  margin-top: 0.5rem;
+}
+
+.quantity-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.quantity-input label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.quantity-input input {
+  width: 60px;
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+button[name="add_to_cart"] {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.6rem 0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+button[name="add_to_cart"]:hover {
+  background-color: var(--primary-dark);
+}
+
+button[name="add_to_cart"]:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 장바구니 스타일 */
+.cart-items {
+  margin: 2rem 0;
+}
+
+.cart-item {
+  display: flex;
+  padding: 1.2rem;
+  background-color: white;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  transition: transform 0.3s;
+}
+
+.cart-item:hover {
+  transform: translateX(5px);
+}
+
+.cart-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 1.5rem;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.item-details h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.item-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0.5rem 0;
+}
+
+.item-subtotal {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quantity-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-form input[type="number"] {
+  width: 60px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.quantity-form button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.quantity-form button:hover {
+  background-color: var(--primary-dark);
+}
+
+.remove-form button {
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.remove-form button:hover {
+  background-color: var(--danger-dark);
+}
+
+.cart-summary {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-top: 2rem;
+}
+
+.cart-summary h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.total {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 1rem 0;
+}
+
+.cart-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.button-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.button-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.button-secondary {
+  background-color: var(--gray-light);
+  color: var(--text-color);
+}
+
+.button-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.button-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.button-danger:hover {
+  background-color: var(--danger-dark);
+}
+
+.button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 푸터 스타일 */
+footer {
+  background-color: white;
+  padding: 2rem 0;
+  border-top: 1px solid #eee;
+  margin-top: 3rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 250px;
+}
+
+.footer-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.footer-section p,
+.footer-section a {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  display: block;
+  text-decoration: none;
+}
+
+.footer-section a:hover {
+  color: var(--primary-color);
+}
+
+.copyright {
+  text-align: center;
+  padding: 1.5rem 0;
+  background-color: var(--gray-light);
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin-top: 2rem;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .cart-item {
+    flex-direction: column;
+  }
+
+  .cart-item img {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto 1rem;
+  }
+
+  .cart-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .footer-container {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+/* 장바구니 플로팅 팝업 */
+.cart-popup {
+  position: fixed;
+  top: 80px;
+  right: -350px;
+  width: 350px;
+  background-color: white;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  transition: right 0.3s;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.cart-popup.active {
+  right: 0;
+}
+
+.cart-popup-header {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-popup-title {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.close-cart {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.cart-popup-items {
+  padding: 1rem;
+}
+
+.cart-popup-item {
+  display: flex;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-popup-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  margin-right: 1rem;
+  border-radius: 4px;
+}
+
+.cart-popup-details {
+  flex: 1;
+}
+
+.cart-popup-details h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.cart-popup-price {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.cart-popup-quantity {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.cart-popup-footer {
+  padding: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.cart-popup-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.cart-popup-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cart-popup-buttons .button {
+  flex: 1;
+  padding: 0.6rem 0;
+  font-size: 0.9rem;
+}
+
+/* 배송 상세 폼 스타일 */
+.delivery-form {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.form-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.required:after {
+  content: " *";
+  color: var(--danger-color);
+}
+
+.error-message {
+  color: var(--danger-color);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.input-error {
+  border-color: var(--danger-color);
+}
+
+/* 주문 확인 페이지 스타일 */
+.order-confirmation {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.confirmation-icon {
+  font-size: 4rem;
+  color: var(--success-color);
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.confirmation-message {
+  font-size: 1.1rem;
+  color: var(--text-color);
+  margin-bottom: 2rem;
+}
+
+.order-details {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: left;
+  background-color: var(--gray-light);
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.detail-value {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.home-button {
+  margin-top: 2rem;
+}
+
+/* 빈 장바구니 스타일 */
+.empty-cart {
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin: 2rem auto;
+  max-width: 600px;
+}
+
+.empty-cart i {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.empty-cart h2 {
+  font-size: 1.8rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.empty-cart p {
+  color: var(--text-light);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.empty-cart .button {
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.empty-cart .button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* 장바구니 복원 섹션 스타일 */
+.restore-cart-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: var(--gray-light);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.restore-cart-section h3 {
+  font-size: 1.2rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.restore-cart-section p {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.restore-cart-section .button {
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.restore-cart-section .button:hover {
+  background-color: var(--secondary-dark);
+}
+
+.restore-cart-section .timer {
+  font-weight: 600;
+  color: var(--primary-color);
+}
