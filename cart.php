@@ -125,6 +125,63 @@ if (isset($_SESSION['cart'])) {
         $cart_count += $quantity;
     }
 }
+
+// Database connection
+$host = 'localhost';
+$dbname = 'grocery_shop';
+$username = 'root';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+
+// Handle cart updates
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['update'])) {
+        foreach ($_POST['quantity'] as $product_id => $quantity) {
+            if ($quantity > 0) {
+                $_SESSION['cart'][$product_id] = $quantity;
+            } else {
+                unset($_SESSION['cart'][$product_id]);
+            }
+        }
+    } elseif (isset($_POST['remove'])) {
+        $product_id = $_POST['product_id'];
+        unset($_SESSION['cart'][$product_id]);
+    }
+    
+    // Redirect to prevent form resubmission
+    header('Location: cart.php');
+    exit();
+}
+
+// Calculate cart totals
+$total_items = 0;
+$total_price = 0;
+$cart_items = [];
+
+if (!empty($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $product_id => $quantity) {
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt->execute([$product_id]);
+        $product = $stmt->fetch();
+        
+        if ($product) {
+            $subtotal = $product['price'] * $quantity;
+            $total_items += $quantity;
+            $total_price += $subtotal;
+            
+            $cart_items[] = [
+                'product' => $product,
+                'quantity' => $quantity,
+                'subtotal' => $subtotal
+            ];
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -141,11 +198,12 @@ if (isset($_SESSION['cart'])) {
     <header>
         <div class="header-container">
             <div class="logo">
-                <img src="img/logo.png" alt="Logo">
-                <h1>Fresh Market</h1>
+                <a href="index.php">
+                    <img src="img/logo.png" alt="Logo">
+                    <h1>Fresh Market</h1>
+                </a>
             </div>
             <nav>
-                <a href="index.php">Home</a>
                 <a href="cart.php" class="cart-icon active">
                     <i class="fas fa-shopping-cart"></i>
                     <?php if ($cart_count > 0): ?>

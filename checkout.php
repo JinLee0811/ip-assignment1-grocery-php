@@ -152,11 +152,12 @@ foreach ($_SESSION['cart'] as $quantity) {
     <header>
         <div class="header-container">
             <div class="logo">
-                <img src="img/logo.png" alt="Logo">
-                <h1>Fresh Market</h1>
+                <a href="index.php">
+                    <img src="img/logo.png" alt="Logo">
+                    <h1>Fresh Market</h1>
+                </a>
             </div>
             <nav>
-                <a href="index.php">Home</a>
                 <a href="cart.php" class="cart-icon">
                     <i class="fas fa-shopping-cart"></i>
                     <?php if ($cart_count > 0): ?>

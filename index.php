@@ -1,65 +1,68 @@
 <?php
 require_once 'db.php';
 
-// Categories and subcategories data (should be from database in real implementation)
-$categories = [
-    ['id' => 1, 'name' => 'Vegetables/Fruits'],
-    ['id' => 2, 'name' => 'Meat/Seafood'],
-    ['id' => 3, 'name' => 'Frozen Foods'],
-    ['id' => 4, 'name' => 'Beverages/Snacks'],
-    ['id' => 5, 'name' => 'Household Items']
-];
+// Database connection
+$host = 'localhost';
+$dbname = 'grocery_shop';
+$username = 'root';
+$password = '';
 
-$subcategories = [
-    1 => [
-        ['id' => 101, 'name' => 'Vegetables'],
-        ['id' => 102, 'name' => 'Fruits'],
-        ['id' => 103, 'name' => 'Salads']
-    ],
-    2 => [
-        ['id' => 201, 'name' => 'Beef'],
-        ['id' => 202, 'name' => 'Pork'],
-        ['id' => 203, 'name' => 'Fish']
-    ],
-    3 => [
-        ['id' => 301, 'name' => 'Frozen Meals'],
-        ['id' => 302, 'name' => 'Ice Cream']
-    ],
-    4 => [
-        ['id' => 401, 'name' => 'Drinks'],
-        ['id' => 402, 'name' => 'Snacks'],
-        ['id' => 403, 'name' => 'Bakery']
-    ],
-    5 => [
-        ['id' => 501, 'name' => 'Cleaning Products'],
-        ['id' => 502, 'name' => 'Paper Products']
-    ]
-];
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
 
-// Add category_id to each product for filtering
-$stmt = $pdo->query("SELECT * FROM products");
+// Fetch categories and subcategories
+$categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
+$subcategories = $pdo->query("SELECT * FROM subcategories ORDER BY category_id, name")->fetchAll();
+
+// Fetch products with their category and subcategory information
+$stmt = $pdo->query("
+    SELECT p.*, c.name as category_name, s.name as subcategory_name 
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN subcategories s ON p.subcategory_id = s.id
+    ORDER BY p.product_name
+");
 $products = $stmt->fetchAll();
 
-// Add category_id to products based on name/type (in a real application, this would be in the database)
-foreach ($products as $key => $product) {
-    // Assign category based on product name/description
-    $name = strtolower($product['product_name']);
+// Handle cart operations
+if (isset($_POST['add_to_cart'])) {
+    $product_id = $_POST['product_id'];
+    $quantity = $_POST['quantity'];
     
-    if (strpos($name, 'apple') !== false || strpos($name, 'banana') !== false || 
-        strpos($name, 'orange') !== false || strpos($name, 'fruit') !== false ||
-        strpos($name, 'vegetable') !== false) {
-        $products[$key]['category_id'] = 1;
-    } elseif (strpos($name, 'beef') !== false || strpos($name, 'chicken') !== false || 
-              strpos($name, 'pork') !== false || strpos($name, 'fish') !== false) {
-        $products[$key]['category_id'] = 2;
-    } elseif (strpos($name, 'frozen') !== false || strpos($name, 'ice cream') !== false) {
-        $products[$key]['category_id'] = 3;
-    } elseif (strpos($name, 'drink') !== false || strpos($name, 'soda') !== false || 
-              strpos($name, 'snack') !== false || strpos($name, 'cookie') !== false) {
-        $products[$key]['category_id'] = 4;
-    } else {
-        $products[$key]['category_id'] = 5; // Default to household items
+    // Get product details
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt->execute([$product_id]);
+    $product = $stmt->fetch();
+    
+    // Calculate total quantity including current cart items
+    $current_cart_quantity = 0;
+    if (isset($_SESSION['cart'][$product_id])) {
+        $current_cart_quantity = $_SESSION['cart'][$product_id];
     }
+    $total_quantity = $current_cart_quantity + $quantity;
+    
+    // Check if total quantity exceeds available stock
+    if ($total_quantity <= $product['in_stock']) {
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = [];
+        }
+        if (isset($_SESSION['cart'][$product_id])) {
+            $_SESSION['cart'][$product_id] += $quantity;
+        } else {
+            $_SESSION['cart'][$product_id] = $quantity;
+        }
+        $_SESSION['message'] = "Product added to cart successfully!";
+    } else {
+        $_SESSION['error'] = "Insufficient stock. Current stock: " . $product['in_stock'] . " units";
+    }
+    
+    // Redirect back to the same product section
+    header('Location: ' . $_SERVER['REQUEST_URI'] . '#product-' . $product_id);
+    exit();
 }
 
 // Search functionality
@@ -67,55 +70,17 @@ $search_results = [];
 $is_search = false;
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE product_name LIKE ? OR unit_quantity LIKE ? ORDER BY product_name");
+    $stmt = $pdo->prepare("
+        SELECT p.*, c.name as category_name, s.name as subcategory_name 
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN subcategories s ON p.subcategory_id = s.id
+        WHERE p.product_name LIKE ? OR p.unit_quantity LIKE ? 
+        ORDER BY p.product_name
+    ");
     $stmt->execute([$search, $search]);
     $search_results = $stmt->fetchAll();
-    
-    // Add category_id to search results as well
-    foreach ($search_results as $key => $product) {
-        $name = strtolower($product['product_name']);
-        
-        if (strpos($name, 'apple') !== false || strpos($name, 'banana') !== false || 
-            strpos($name, 'orange') !== false || strpos($name, 'fruit') !== false ||
-            strpos($name, 'vegetable') !== false) {
-            $search_results[$key]['category_id'] = 1;
-        } elseif (strpos($name, 'beef') !== false || strpos($name, 'chicken') !== false || 
-                strpos($name, 'pork') !== false || strpos($name, 'fish') !== false) {
-            $search_results[$key]['category_id'] = 2;
-        } elseif (strpos($name, 'frozen') !== false || strpos($name, 'ice cream') !== false) {
-            $search_results[$key]['category_id'] = 3;
-        } elseif (strpos($name, 'drink') !== false || strpos($name, 'soda') !== false || 
-                strpos($name, 'snack') !== false || strpos($name, 'cookie') !== false) {
-            $search_results[$key]['category_id'] = 4;
-        } else {
-            $search_results[$key]['category_id'] = 5; // Default to household items
-        }
-    }
-    
     $is_search = true;
-}
-
-// Add to cart
-if (isset($_POST['add_to_cart'])) {
-    $product_id = $_POST['product_id'];
-    $quantity = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
-    
-    // Check stock
-    $stmt = $pdo->prepare("SELECT in_stock FROM products WHERE product_id = ?");
-    $stmt->execute([$product_id]);
-    $product = $stmt->fetch();
-    
-    if ($product && $product['in_stock'] >= $quantity) {
-        if (isset($_SESSION['cart'][$product_id])) {
-            $_SESSION['cart'][$product_id] += $quantity;
-        } else {
-            $_SESSION['cart'][$product_id] = $quantity;
-        }
-        
-        // Stay on the current page instead of redirecting to cart
-        header('Location: ' . $_SERVER['REQUEST_URI']);
-        exit();
-    }
 }
 
 // Count items in cart
@@ -124,6 +89,12 @@ if (isset($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $quantity) {
         $cart_count += $quantity;
     }
+}
+
+// Display stock error message if exists
+if (isset($_SESSION['error'])) {
+    echo '<div class="alert alert-danger">' . $_SESSION['error'] . '</div>';
+    unset($_SESSION['error']);
 }
 ?>
 
@@ -142,8 +113,10 @@ if (isset($_SESSION['cart'])) {
     <header>
         <div class="header-container">
             <div class="logo">
-                <img src="img/logo.png" alt="Logo">
-                <h1>Fresh Market</h1>
+                <a href="index.php">
+                    <img src="img/logo.png" alt="Logo">
+                    <h1>Fresh Market</h1>
+                </a>
             </div>
             <div class="search-box">
                 <form method="get" action="index.php">
@@ -155,7 +128,6 @@ if (isset($_SESSION['cart'])) {
                 </form>
             </div>
             <nav>
-                <a href="index.php">Home</a>
                 <a href="cart.php" class="cart-icon">
                     <i class="fas fa-shopping-cart"></i>
                     <?php if ($cart_count > 0): ?>
@@ -167,15 +139,33 @@ if (isset($_SESSION['cart'])) {
     </header>
 
     <section class="categories">
-        <div class="category-list">
-            <div class="category-item active">All Products</div>
-            <?php foreach ($categories as $category): ?>
-            <div class="category-item" data-category="<?php echo $category['id']; ?>"><?php echo $category['name']; ?></div>
-            <?php endforeach; ?>
-        </div>
-        
-        <div class="subcategories">
-            <!-- Subcategories will be loaded dynamically with JavaScript -->
+        <div class="category-nav">
+            <div class="categories">
+                <button class="category-item active" data-category="all">All Products</button>
+                <?php foreach ($categories as $category): ?>
+                    <button class="category-item" data-category="<?php echo $category['id']; ?>">
+                        <?php echo htmlspecialchars($category['name']); ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+            
+            <div class="subcategories">
+                <?php foreach ($categories as $category): ?>
+                    <div class="subcategory-group" data-category="<?php echo $category['id']; ?>" style="display: none;">
+                        <?php
+                        $category_subcategories = array_filter($subcategories, function($sub) use ($category) {
+                            return $sub['category_id'] == $category['id'];
+                        });
+                        foreach ($category_subcategories as $subcategory):
+                        ?>
+                            <button class="subcategory-item" data-category="<?php echo $category['id']; ?>" 
+                                    data-subcategory="<?php echo $subcategory['id']; ?>">
+                                <?php echo htmlspecialchars($subcategory['name']); ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
     </section>
 
@@ -186,11 +176,49 @@ if (isset($_SESSION['cart'])) {
             <?php if (empty($search_results)): ?>
                 <p>No results found. Please try a different search term.</p>
             <?php else: ?>
+                <div class="products-container">
+                    <div class="products-grid">
+                        <?php foreach ($search_results as $product): ?>
+                            <div class="product-card" data-category="<?php echo $product['category_id']; ?>" data-subcategory="<?php echo $product['subcategory_id']; ?>" id="product-<?php echo $product['id']; ?>">
+                                <div class="product-image">
+                                    <img src="img/products/<?php echo $product['id']; ?>.jpg" alt="<?php echo htmlspecialchars($product['product_name']); ?>" onerror="this.src='img/no-image.png'">
+                                </div>
+                                <div class="product-info">
+                                    <h3><?php echo htmlspecialchars($product['product_name']); ?></h3>
+                                    <p class="price">$<?php echo number_format($product['unit_price'], 2); ?></p>
+                                    <p class="unit"><?php echo htmlspecialchars($product['unit_quantity']); ?></p>
+                                    
+                                    <?php if ($product['in_stock'] > 0): ?>
+                                        <p class="stock in-stock">In Stock: <?php echo $product['in_stock']; ?> units</p>
+                                        <form method="post" class="add-to-cart-form">
+                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                            <div class="quantity-input">
+                                                <label for="quantity-<?php echo $product['id']; ?>">Quantity:</label>
+                                                <input type="number" id="quantity-<?php echo $product['id']; ?>" 
+                                                    name="quantity" value="1" min="1" max="<?php echo $product['in_stock']; ?>">
+                                            </div>
+                                            <button type="submit" name="add_to_cart">Add to Cart</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <p class="stock out-of-stock">Out of Stock</p>
+                                        <button disabled>Add to Cart</button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+        <?php else: ?>
+            <h2 class="page-title">Fresh Products for You</h2>
+            
+            <div class="products-container">
                 <div class="products-grid">
-                    <?php foreach ($search_results as $product): ?>
-                        <div class="product-card" data-category="<?php echo $product['category_id']; ?>">
+                    <?php foreach ($products as $product): ?>
+                        <div class="product-card" data-category="<?php echo $product['category_id']; ?>" data-subcategory="<?php echo $product['subcategory_id']; ?>" id="product-<?php echo $product['id']; ?>">
                             <div class="product-image">
-                                <img src="img/products/<?php echo $product['product_id']; ?>.jpg" alt="<?php echo htmlspecialchars($product['product_name']); ?>" onerror="this.src='img/no-image.png'">
+                                <img src="img/products/<?php echo $product['id']; ?>.jpg" alt="<?php echo htmlspecialchars($product['product_name']); ?>" onerror="this.src='img/no-image.png'">
                             </div>
                             <div class="product-info">
                                 <h3><?php echo htmlspecialchars($product['product_name']); ?></h3>
@@ -200,10 +228,10 @@ if (isset($_SESSION['cart'])) {
                                 <?php if ($product['in_stock'] > 0): ?>
                                     <p class="stock in-stock">In Stock: <?php echo $product['in_stock']; ?> units</p>
                                     <form method="post" class="add-to-cart-form">
-                                        <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                         <div class="quantity-input">
-                                            <label for="quantity-<?php echo $product['product_id']; ?>">Quantity:</label>
-                                            <input type="number" id="quantity-<?php echo $product['product_id']; ?>" 
+                                            <label for="quantity-<?php echo $product['id']; ?>">Quantity:</label>
+                                            <input type="number" id="quantity-<?php echo $product['id']; ?>" 
                                                 name="quantity" value="1" min="1" max="<?php echo $product['in_stock']; ?>">
                                         </div>
                                         <button type="submit" name="add_to_cart">Add to Cart</button>
@@ -216,40 +244,6 @@ if (isset($_SESSION['cart'])) {
                         </div>
                     <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
-            
-        <?php else: ?>
-            <h2 class="page-title">Fresh Products for You</h2>
-            
-            <div class="products-grid">
-                <?php foreach ($products as $product): ?>
-                    <div class="product-card" data-category="<?php echo $product['category_id']; ?>">
-                        <div class="product-image">
-                            <img src="img/products/<?php echo $product['product_id']; ?>.jpg" alt="<?php echo htmlspecialchars($product['product_name']); ?>" onerror="this.src='img/no-image.png'">
-                        </div>
-                        <div class="product-info">
-                            <h3><?php echo htmlspecialchars($product['product_name']); ?></h3>
-                            <p class="price">$<?php echo number_format($product['unit_price'], 2); ?></p>
-                            <p class="unit"><?php echo htmlspecialchars($product['unit_quantity']); ?></p>
-                            
-                            <?php if ($product['in_stock'] > 0): ?>
-                                <p class="stock in-stock">In Stock: <?php echo $product['in_stock']; ?> units</p>
-                                <form method="post" class="add-to-cart-form">
-                                    <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
-                                    <div class="quantity-input">
-                                        <label for="quantity-<?php echo $product['product_id']; ?>">Quantity:</label>
-                                        <input type="number" id="quantity-<?php echo $product['product_id']; ?>" 
-                                            name="quantity" value="1" min="1" max="<?php echo $product['in_stock']; ?>">
-                                    </div>
-                                    <button type="submit" name="add_to_cart">Add to Cart</button>
-                                </form>
-                            <?php else: ?>
-                                <p class="stock out-of-stock">Out of Stock</p>
-                                <button disabled>Add to Cart</button>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
             </div>
         <?php endif; ?>
     </main>
@@ -312,89 +306,65 @@ if (isset($_SESSION['cart'])) {
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Category filtering
-        const categoryItems = document.querySelectorAll('.category-item');
+        const categoryButtons = document.querySelectorAll('.category-item');
         const productCards = document.querySelectorAll('.product-card');
-        const subcategoriesContainer = document.querySelector('.subcategories');
+        const subcategoryGroups = document.querySelectorAll('.subcategory-group');
         
-        categoryItems.forEach(item => {
-            item.addEventListener('click', function() {
-                // Toggle active class
-                categoryItems.forEach(cat => cat.classList.remove('active'));
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active state
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
                 
-                const categoryId = this.dataset.category;
+                const selectedCategory = this.dataset.category;
                 
-                // If "All Products" is selected
-                if (!categoryId) {
-                    productCards.forEach(card => card.style.display = 'block');
-                    subcategoriesContainer.innerHTML = '';
-                    return;
-                }
+                // Show/hide subcategories
+                subcategoryGroups.forEach(group => {
+                    if (selectedCategory === 'all' || group.dataset.category === selectedCategory) {
+                        group.style.display = 'flex';
+                    } else {
+                        group.style.display = 'none';
+                    }
+                });
                 
-                // Filter by category
+                // Filter products
                 productCards.forEach(card => {
-                    if (card.dataset.category === categoryId) {
+                    if (selectedCategory === 'all' || card.dataset.category === selectedCategory) {
                         card.style.display = 'block';
                     } else {
                         card.style.display = 'none';
                     }
                 });
-                
-                // Show subcategories
-                loadSubcategories(categoryId);
             });
         });
         
-        // Load subcategories function
-        function loadSubcategories(categoryId) {
-            // In a real application, this data would come from an AJAX request
-            const subcategories = {
-                '1': [
-                    {id: 101, name: 'Vegetables'},
-                    {id: 102, name: 'Fruits'},
-                    {id: 103, name: 'Salads'}
-                ],
-                '2': [
-                    {id: 201, name: 'Beef'},
-                    {id: 202, name: 'Pork'},
-                    {id: 203, name: 'Fish'}
-                ],
-                '3': [
-                    {id: 301, name: 'Frozen Meals'},
-                    {id: 302, name: 'Ice Cream'}
-                ],
-                '4': [
-                    {id: 401, name: 'Drinks'},
-                    {id: 402, name: 'Snacks'},
-                    {id: 403, name: 'Bakery'}
-                ],
-                '5': [
-                    {id: 501, name: 'Cleaning Products'},
-                    {id: 502, name: 'Paper Products'}
-                ]
-            };
-            
-            subcategoriesContainer.innerHTML = '';
-            
-            if (subcategories[categoryId]) {
-                subcategories[categoryId].forEach(subcat => {
-                    const subcatElement = document.createElement('div');
-                    subcatElement.className = 'subcategory-item';
-                    subcatElement.textContent = subcat.name;
-                    subcatElement.dataset.subcategory = subcat.id;
-                    
-                    subcatElement.addEventListener('click', function() {
-                        const subcatItems = document.querySelectorAll('.subcategory-item');
-                        subcatItems.forEach(item => item.classList.remove('active'));
-                        this.classList.add('active');
-                        
-                        // Additional filtering logic could be added here
-                    });
-                    
-                    subcategoriesContainer.appendChild(subcatElement);
+        // Subcategory filtering
+        const subcategoryButtons = document.querySelectorAll('.subcategory-item');
+        
+        subcategoryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const selectedCategory = this.dataset.category;
+                const selectedSubcategory = this.dataset.subcategory;
+                
+                // Update active state
+                subcategoryButtons.forEach(btn => {
+                    if (btn.dataset.category === selectedCategory) {
+                        btn.classList.remove('active');
+                    }
                 });
-            }
-        }
+                this.classList.add('active');
+                
+                // Filter products
+                productCards.forEach(card => {
+                    if (card.dataset.category === selectedCategory && 
+                        card.dataset.subcategory === selectedSubcategory) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
         
         // Cart popup
         const cartIcon = document.querySelector('.cart-icon');
