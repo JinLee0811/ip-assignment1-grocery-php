@@ -1,9 +1,9 @@
 <?php
 // 데이터베이스 연결 설정
 $host = 'localhost';
-$dbname = 'assignment1';
+$dbname = 'fresh_market';
 $username = 'root';
-$password = 'wjdwls3025!';  // MySQL root 비밀번호를 여기에 입력하세요
+$password = 'wjdwls3025!';  // MySQL root 비밀번호
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);

@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS assignment1;
-CREATE DATABASE assignment1;
-use assignment1;
+DROP DATABASE IF EXISTS fresh_market;
+CREATE DATABASE fresh_market;
+use fresh_market;
 
 -- Create categories table
 CREATE TABLE categories (
@@ -18,7 +18,7 @@ CREATE TABLE subcategories (
 
 -- Create products table
 CREATE TABLE products (
-    product_id INT PRIMARY KEY AUTO_INCREMENT,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     product_name VARCHAR(255) NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
     unit_quantity VARCHAR(50) NOT NULL,
@@ -64,7 +64,7 @@ INSERT INTO subcategories (id, category_id, name) VALUES
 (603, 6, 'Other Pet Food');
 
 -- Insert products with category and subcategory
-INSERT INTO products (product_id, product_name, unit_price, unit_quantity, in_stock, category_id, subcategory_id) VALUES
+INSERT INTO products (id, product_name, unit_price, unit_quantity, in_stock, category_id, subcategory_id) VALUES
 -- Frozen Foods
 (1000, 'Fish Fingers', 2.55, '500 gram', 1500, 1, 103),
 (1001, 'Fish Fingers', 5.00, '1000 gram', 750, 1, 103),

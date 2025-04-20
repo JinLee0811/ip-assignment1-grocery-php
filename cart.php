@@ -18,17 +18,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_cart_data') {
     
     if (!empty($_SESSION['cart'])) {
         foreach ($_SESSION['cart'] as $product_id => $quantity) {
-            $stmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ?");
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
             $stmt->execute([$product_id]);
             $product = $stmt->fetch();
             
             if ($product) {
                 $cart_items[] = [
-                    'product_id' => $product_id,
-                    'name' => $product['product_name'],
-                    'price' => $product['unit_price'],
+                    'id' => $product_id,
+                    'product_name' => $product['product_name'],
+                    'unit_price' => $product['unit_price'],
                     'quantity' => $quantity,
-                    'subtotal' => $product['unit_price'] * $quantity
+                    'unit_quantity' => $product['unit_quantity'],
+                    'subtotal' => $product['unit_price'] * $quantity,
+                    'in_stock' => $product['in_stock']
                 ];
                 $total_amount += $product['unit_price'] * $quantity;
             }
@@ -99,17 +101,17 @@ $total_amount = 0;
 
 if (!empty($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $product_id => $quantity) {
-        $stmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ?");
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
         $stmt->execute([$product_id]);
         $product = $stmt->fetch();
         
         if ($product) {
             $cart_items[] = [
-                'product_id' => $product_id,
-                'name' => $product['product_name'],
-                'price' => $product['unit_price'],
+                'id' => $product_id,
+                'product_name' => $product['product_name'],
+                'unit_price' => $product['unit_price'],
                 'quantity' => $quantity,
-                'unit' => $product['unit_quantity'],
+                'unit_quantity' => $product['unit_quantity'],
                 'subtotal' => $product['unit_price'] * $quantity,
                 'in_stock' => $product['in_stock']
             ];
@@ -126,38 +128,6 @@ if (isset($_SESSION['cart'])) {
     }
 }
 
-// Database connection
-$host = 'localhost';
-$dbname = 'grocery_shop';
-$username = 'root';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
-}
-
-// Handle cart updates
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update'])) {
-        foreach ($_POST['quantity'] as $product_id => $quantity) {
-            if ($quantity > 0) {
-                $_SESSION['cart'][$product_id] = $quantity;
-            } else {
-                unset($_SESSION['cart'][$product_id]);
-            }
-        }
-    } elseif (isset($_POST['remove'])) {
-        $product_id = $_POST['product_id'];
-        unset($_SESSION['cart'][$product_id]);
-    }
-    
-    // Redirect to prevent form resubmission
-    header('Location: cart.php');
-    exit();
-}
-
 // Calculate cart totals
 $total_items = 0;
 $total_price = 0;
@@ -170,14 +140,18 @@ if (!empty($_SESSION['cart'])) {
         $product = $stmt->fetch();
         
         if ($product) {
-            $subtotal = $product['price'] * $quantity;
+            $subtotal = $product['unit_price'] * $quantity;
             $total_items += $quantity;
             $total_price += $subtotal;
             
             $cart_items[] = [
-                'product' => $product,
+                'id' => $product_id,
+                'product_name' => $product['product_name'],
+                'unit_price' => $product['unit_price'],
                 'quantity' => $quantity,
-                'subtotal' => $subtotal
+                'unit_quantity' => $product['unit_quantity'],
+                'subtotal' => $subtotal,
+                'in_stock' => $product['in_stock']
             ];
         }
     }
@@ -240,21 +214,21 @@ if (!empty($_SESSION['cart'])) {
                 <div class="cart-items">
                     <?php foreach ($cart_items as $item): ?>
                         <div class="cart-item">
-                            <img src="img/products/<?php echo $item['product_id']; ?>.jpg" alt="<?php echo htmlspecialchars($item['name']); ?>" onerror="this.src='img/no-image.png'">
+                            <img src="img/products/<?php echo $item['id']; ?>.jpg" alt="<?php echo htmlspecialchars($item['product_name']); ?>" onerror="this.src='img/no-image.png'">
                             <div class="item-details">
-                                <h3><?php echo htmlspecialchars($item['name']); ?></h3>
-                                <p class="item-price">$<?php echo number_format($item['price'], 2); ?></p>
-                                <p class="unit"><?php echo htmlspecialchars($item['unit']); ?></p>
+                                <h3><?php echo htmlspecialchars($item['product_name']); ?></h3>
+                                <p class="item-price">$<?php echo number_format($item['unit_price'], 2); ?></p>
+                                <p class="unit"><?php echo htmlspecialchars($item['unit_quantity']); ?></p>
                                 <p class="item-subtotal">Subtotal: $<?php echo number_format($item['subtotal'], 2); ?></p>
                             </div>
                             <div class="cart-actions">
                                 <form method="post" class="quantity-form">
-                                    <input type="hidden" name="product_id" value="<?php echo $item['product_id']; ?>">
+                                    <input type="hidden" name="product_id" value="<?php echo $item['id']; ?>">
                                     <input type="number" name="quantity" value="<?php echo $item['quantity']; ?>" min="1" max="<?php echo $item['in_stock']; ?>">
                                     <button type="submit" name="update_quantity">Update</button>
                                 </form>
                                 <form method="post" class="remove-form">
-                                    <input type="hidden" name="product_id" value="<?php echo $item['product_id']; ?>">
+                                    <input type="hidden" name="product_id" value="<?php echo $item['id']; ?>">
                                     <button type="submit" name="remove_item"><i class="fas fa-trash-alt"></i> Remove</button>
                                 </form>
                             </div>

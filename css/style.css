@@ -1,17 +1,17 @@
 /* 전체 스타일 */
 :root {
-  --primary-color: #4caf50;
-  --primary-dark: #388e3c;
-  --primary-light: #a5d6a7;
-  --accent-color: #ffc107;
-  --text-color: #333333;
-  --text-light: #757575;
-  --background-light: #f9f9f9;
-  --danger-color: #f44336;
-  --danger-dark: #d32f2f;
-  --success-color: #4caf50;
-  --gray-light: #f1f1f1;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --primary-color: #9e77ed;
+  --primary-dark: #7b5bd4;
+  --primary-light: #c3b1f3;
+  --accent-color: #ffb84c;
+  --text-color: #2d2d2d;
+  --text-light: #6b7280;
+  --background-light: #f9fafb;
+  --danger-color: #ef4444;
+  --danger-dark: #dc2626;
+  --success-color: #10b981;
+  --gray-light: #f3f4f6;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -30,7 +30,7 @@ body {
 /* 헤더 스타일 */
 header {
   background-color: white;
-  padding: 1rem 0;
+  padding: 1.2rem 0;
   box-shadow: var(--shadow);
   position: sticky;
   top: 0;
@@ -57,9 +57,10 @@ header {
 }
 
 .logo h1 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   color: var(--primary-color);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .logo a {
@@ -81,28 +82,21 @@ nav {
 nav a {
   text-decoration: none;
   color: var(--text-color);
-  font-weight: 500;
-  transition: color 0.3s;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
   position: relative;
 }
 
 nav a:hover {
-  color: var(--primary-color);
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
 }
 
 nav a::after {
-  content: "";
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--primary-color);
-  transition: width 0.3s;
-}
-
-nav a:hover::after {
-  width: 100%;
+  display: none;
 }
 
 .cart-icon {
@@ -117,12 +111,12 @@ nav a:hover::after {
   background-color: var(--accent-color);
   color: white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
@@ -149,10 +143,10 @@ nav a:hover::after {
 
 .search-box input {
   flex: 1;
-  padding: 0.8rem 1.2rem;
-  border: 1px solid #ddd;
-  border-radius: 4px 0 0 4px;
-  font-size: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px 0 0 12px;
+  border: 2px solid #e5e7eb;
+  font-size: 1.1rem;
   min-width: 300px;
   transition: border-color 0.3s;
 }
@@ -183,13 +177,14 @@ nav a:hover::after {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 0 1.2rem;
-  border-radius: 0 4px 4px 0;
+  padding: 0 1.8rem;
+  border-radius: 0 12px 12px 0;
   cursor: pointer;
   transition: background-color 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.2rem;
 }
 
 .search-box .search-button:hover {
@@ -202,20 +197,26 @@ nav a:hover::after {
 
 /* 카테고리 스타일 */
 .categories {
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   max-width: 1200px;
-  margin: 1.5rem auto;
-  padding: 0 1rem;
 }
 
-.category-list {
+.category-nav {
   display: flex;
-  gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.category-list::-webkit-scrollbar {
-  height: 4px;
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
 }
 
 .category-list::-webkit-scrollbar-thumb {
@@ -224,41 +225,49 @@ nav a:hover::after {
 }
 
 .category-item {
-  padding: 0.5rem 1rem;
+  padding: 0.8rem 1.5rem;
   background-color: white;
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   white-space: nowrap;
+  border: 2px solid transparent;
 }
 
 .category-item:hover,
 .category-item.active {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+  border-color: var(--primary-color);
 }
 
 .subcategories {
-  margin-top: 1rem;
+  margin-top: 1.2rem;
   display: flex;
-  gap: 0.5rem;
+  gap: 0.8rem;
   flex-wrap: wrap;
 }
 
 .subcategory-item {
-  padding: 0.3rem 0.8rem;
-  background-color: var(--gray-light);
-  border-radius: 20px;
-  font-size: 0.9rem;
+  padding: 0.5rem 1.2rem;
+  background-color: white;
+  border: 1px solid var(--primary-light);
+  border-radius: 25px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--primary-color);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .subcategory-item:hover,
 .subcategory-item.active {
-  background-color: var(--primary-light);
-  color: var(--primary-dark);
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(158, 119, 237, 0.2);
 }
 
 /* 메인 컨텐츠 스타일 */
@@ -284,27 +293,29 @@ main {
 
 .product-card {
   background-color: white;
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: var(--shadow);
-  transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .product-image {
   width: 100%;
-  height: 200px;
+  height: 250px;
   background-color: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-radius: 16px 16px 0 0;
 }
 
 .product-image img {
@@ -319,19 +330,19 @@ main {
 }
 
 .product-info {
-  padding: 1.2rem;
+  padding: 1.5rem;
 }
 
 .product-info h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
   color: var(--text-color);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .price {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   color: var(--primary-color);
   margin-bottom: 0.5rem;
 }
@@ -385,11 +396,12 @@ button[name="add_to_cart"] {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 0.6rem 0;
-  border-radius: 4px;
+  padding: 0.8rem 0;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   transition: background-color 0.3s;
+  letter-spacing: 0.5px;
 }
 
 button[name="add_to_cart"]:hover {
@@ -408,12 +420,13 @@ button[name="add_to_cart"]:disabled {
 
 .cart-item {
   display: flex;
-  padding: 1.2rem;
+  padding: 1.5rem;
   background-color: white;
   box-shadow: var(--shadow);
   margin-bottom: 1rem;
-  border-radius: 8px;
+  border-radius: 16px;
   transition: transform 0.3s;
+  gap: 2rem;
 }
 
 .cart-item:hover {
@@ -421,10 +434,10 @@ button[name="add_to_cart"]:disabled {
 }
 
 .cart-item img {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 12px;
   margin-right: 1.5rem;
 }
 
@@ -438,12 +451,13 @@ button[name="add_to_cart"]:disabled {
 .item-details h3 {
   margin: 0 0 0.5rem 0;
   color: var(--text-color);
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
 .item-price {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: 800;
   color: var(--primary-color);
   margin: 0.5rem 0;
 }
@@ -467,9 +481,9 @@ button[name="add_to_cart"]:disabled {
 
 .quantity-form input[type="number"] {
   width: 60px;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
   text-align: center;
 }
 
@@ -530,13 +544,14 @@ button[name="add_to_cart"]:disabled {
 
 .button {
   display: inline-block;
-  padding: 0.8rem 1.5rem;
+  padding: 1rem 2rem;
   text-decoration: none;
-  border-radius: 4px;
-  font-weight: 500;
+  border-radius: 8px;
+  font-weight: 600;
   text-align: center;
   transition: all 0.3s;
   cursor: pointer;
+  letter-spacing: 0.5px;
 }
 
 .button-primary {
@@ -654,16 +669,17 @@ footer {
 /* 장바구니 플로팅 팝업 */
 .cart-popup {
   position: fixed;
-  top: 80px;
-  right: -350px;
-  width: 350px;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
   background-color: white;
-  border-radius: 8px 0 0 8px;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
-  z-index: 999;
-  transition: right 0.3s;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
+  box-shadow: var(--shadow);
+  transition: right 0.3s ease-in-out;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #e5e7eb;
 }
 
 .cart-popup.active {
@@ -671,42 +687,52 @@ footer {
 }
 
 .cart-popup-header {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
+  padding: 2rem;
+  border-bottom: 1px solid var(--gray-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .cart-popup-title {
-  font-weight: 600;
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--text-color);
 }
 
 .close-cart {
   background: none;
   border: none;
-  color: var(--text-light);
+  font-size: 1.5rem;
   cursor: pointer;
-  font-size: 1.2rem;
+  color: var(--text-light);
+  transition: color 0.3s;
+}
+
+.close-cart:hover {
+  color: var(--text-color);
 }
 
 .cart-popup-items {
+  flex: 1;
+  overflow-y: auto;
   padding: 1rem;
 }
 
 .cart-popup-item {
   display: flex;
-  margin-bottom: 0.8rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid #eee;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  background-color: var(--gray-light);
+  gap: 1rem;
+  align-items: center;
 }
 
 .cart-popup-item img {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
-  margin-right: 1rem;
   border-radius: 4px;
 }
 
@@ -715,42 +741,62 @@ footer {
 }
 
 .cart-popup-details h4 {
-  font-size: 0.9rem;
-  margin-bottom: 0.2rem;
-}
-
-.cart-popup-price {
-  font-size: 0.9rem;
-  color: var(--primary-color);
+  margin-bottom: 0.5rem;
   font-weight: 500;
 }
 
+.cart-popup-price {
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
 .cart-popup-quantity {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--text-light);
 }
 
 .cart-popup-footer {
-  padding: 1rem;
-  border-top: 1px solid #eee;
+  padding: 1.5rem;
+  border-top: 1px solid var(--gray-light);
+  background-color: white;
 }
 
 .cart-popup-total {
   display: flex;
   justify-content: space-between;
-  font-weight: 600;
+  align-items: center;
   margin-bottom: 1rem;
+  font-weight: 700;
+  font-size: 1.3rem;
 }
 
 .cart-popup-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .cart-popup-buttons .button {
   flex: 1;
-  padding: 0.6rem 0;
-  font-size: 0.9rem;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .cart-popup {
+    width: 100%;
+    right: -100%;
+  }
+
+  .cart-popup-item img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .cart-popup-buttons {
+    flex-direction: column;
+  }
 }
 
 /* 배송 상세 폼 스타일 */
@@ -934,41 +980,47 @@ footer {
 /* 장바구니 복원 섹션 스타일 */
 .restore-cart-section {
   margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: var(--gray-light);
-  border-radius: 8px;
+  padding: 2rem;
+  background-color: #f5f3ff;
+  border: 1px solid var(--primary-light);
+  border-radius: 12px;
   text-align: center;
 }
 
 .restore-cart-section h3 {
-  font-size: 1.2rem;
-  color: var(--text-color);
+  font-size: 1.3rem;
+  color: var(--primary-color);
   margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .restore-cart-section p {
-  color: var(--text-light);
-  margin-bottom: 1rem;
+  color: var(--text-color);
+  margin-bottom: 1.2rem;
+  font-size: 1.05rem;
 }
 
 .restore-cart-section .button {
-  padding: 0.6rem 1.5rem;
-  font-size: 1rem;
-  background-color: var(--secondary-color);
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  font-weight: 600;
 }
 
 .restore-cart-section .button:hover {
-  background-color: var(--secondary-dark);
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
 }
 
 .restore-cart-section .timer {
-  font-weight: 600;
-  color: var(--primary-color);
+  font-weight: 700;
+  color: var(--primary-dark);
+  font-size: 1.1rem;
 }
 
 .alert {

@@ -8,6 +8,14 @@ if (!isset($_SESSION['order'])) {
 }
 
 $order = $_SESSION['order'];
+
+// Count items in cart
+$cart_count = 0;
+if (isset($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $quantity) {
+        $cart_count += $quantity;
+    }
+}
 ?>
 
 <!DOCTYPE html>

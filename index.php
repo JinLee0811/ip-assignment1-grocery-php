@@ -1,19 +1,6 @@
 <?php
 require_once 'db.php';
 
-// Database connection
-$host = 'localhost';
-$dbname = 'grocery_shop';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
-}
-
 // Fetch categories and subcategories
 $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 $subcategories = $pdo->query("SELECT * FROM subcategories ORDER BY category_id, name")->fetchAll();
@@ -61,7 +48,16 @@ if (isset($_POST['add_to_cart'])) {
     }
     
     // Redirect back to the same product section
-    header('Location: ' . $_SERVER['REQUEST_URI'] . '#product-' . $product_id);
+    $redirect_url = $_SERVER['REQUEST_URI'];
+    if (isset($_POST['current_category'])) {
+        $redirect_url = preg_replace('/[&?]category=[^&]*/', '', $redirect_url);
+        $redirect_url = preg_replace('/[&?]subcategory=[^&]*/', '', $redirect_url);
+        $redirect_url .= (strpos($redirect_url, '?') !== false ? '&' : '?') . 'category=' . $_POST['current_category'];
+        if (!empty($_POST['current_subcategory'])) {
+            $redirect_url .= '&subcategory=' . $_POST['current_subcategory'];
+        }
+    }
+    header('Location: ' . $redirect_url . '#product-' . $product_id);
     exit();
 }
 
@@ -192,6 +188,8 @@ if (isset($_SESSION['error'])) {
                                         <p class="stock in-stock">In Stock: <?php echo $product['in_stock']; ?> units</p>
                                         <form method="post" class="add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                            <input type="hidden" name="current_category" class="current-category-input">
+                                            <input type="hidden" name="current_subcategory" class="current-subcategory-input">
                                             <div class="quantity-input">
                                                 <label for="quantity-<?php echo $product['id']; ?>">Quantity:</label>
                                                 <input type="number" id="quantity-<?php echo $product['id']; ?>" 
@@ -229,6 +227,8 @@ if (isset($_SESSION['error'])) {
                                     <p class="stock in-stock">In Stock: <?php echo $product['in_stock']; ?> units</p>
                                     <form method="post" class="add-to-cart-form">
                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <input type="hidden" name="current_category" class="current-category-input">
+                                        <input type="hidden" name="current_subcategory" class="current-subcategory-input">
                                         <div class="quantity-input">
                                             <label for="quantity-<?php echo $product['id']; ?>">Quantity:</label>
                                             <input type="number" id="quantity-<?php echo $product['id']; ?>" 
@@ -305,66 +305,142 @@ if (isset($_SESSION['error'])) {
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Get category and subcategory from URL if exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedCategory = urlParams.get('category');
+        const selectedSubcategory = urlParams.get('subcategory');
+        
         // Category filtering
         const categoryButtons = document.querySelectorAll('.category-item');
         const productCards = document.querySelectorAll('.product-card');
         const subcategoryGroups = document.querySelectorAll('.subcategory-group');
+        const subcategoryButtons = document.querySelectorAll('.subcategory-item');
+        const currentCategoryInputs = document.querySelectorAll('.current-category-input');
+        const currentSubcategoryInputs = document.querySelectorAll('.current-subcategory-input');
         
+        // Function to update current category in forms
+        function updateCurrentCategoryInputs(category, subcategory) {
+            currentCategoryInputs.forEach(input => {
+                input.value = category || 'all';
+            });
+            currentSubcategoryInputs.forEach(input => {
+                input.value = subcategory || '';
+            });
+        }
+
+        // Function to update URL without refresh
+        function updateURL(category, subcategory) {
+            const newUrl = new URL(window.location.href);
+            if (category === 'all') {
+                newUrl.searchParams.delete('category');
+                newUrl.searchParams.delete('subcategory');
+            } else {
+                newUrl.searchParams.set('category', category);
+                if (subcategory) {
+                    newUrl.searchParams.set('subcategory', subcategory);
+                } else {
+                    newUrl.searchParams.delete('subcategory');
+                }
+            }
+            window.history.pushState({}, '', newUrl);
+        }
+
+        // Function to filter products
+        function filterProducts(category, subcategory) {
+            productCards.forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'block';
+                } else if (subcategory) {
+                    card.style.display = (card.dataset.category === category && card.dataset.subcategory === subcategory) ? 'block' : 'none';
+                } else {
+                    card.style.display = card.dataset.category === category ? 'block' : 'none';
+                }
+            });
+        }
+        
+        // Function to reset all subcategories
+        function resetSubcategories() {
+            subcategoryButtons.forEach(btn => btn.classList.remove('active'));
+            subcategoryGroups.forEach(group => group.style.display = 'none');
+        }
+
+        // Function to show subcategories for a category
+        function showSubcategoriesForCategory(category) {
+            subcategoryGroups.forEach(group => {
+                if (category === 'all') {
+                    group.style.display = 'none';
+                } else if (group.dataset.category === category) {
+                    group.style.display = 'flex';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
+
         categoryButtons.forEach(button => {
             button.addEventListener('click', function() {
-                // Update active state
+                const category = this.dataset.category;
+                
+                // Update active states
                 categoryButtons.forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
                 
-                const selectedCategory = this.dataset.category;
+                // Reset subcategories
+                resetSubcategories();
                 
-                // Show/hide subcategories
-                subcategoryGroups.forEach(group => {
-                    if (selectedCategory === 'all' || group.dataset.category === selectedCategory) {
-                        group.style.display = 'flex';
-                    } else {
-                        group.style.display = 'none';
-                    }
-                });
+                // Show relevant subcategories
+                showSubcategoriesForCategory(category);
                 
-                // Filter products
-                productCards.forEach(card => {
-                    if (selectedCategory === 'all' || card.dataset.category === selectedCategory) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                // Filter products and update URL
+                filterProducts(category, null);
+                updateCurrentCategoryInputs(category, null);
+                updateURL(category, null);
             });
         });
         
-        // Subcategory filtering
-        const subcategoryButtons = document.querySelectorAll('.subcategory-item');
-        
         subcategoryButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const selectedCategory = this.dataset.category;
-                const selectedSubcategory = this.dataset.subcategory;
+                const category = this.dataset.category;
+                const subcategory = this.dataset.subcategory;
                 
-                // Update active state
+                // Update active state for subcategories in the same category
                 subcategoryButtons.forEach(btn => {
-                    if (btn.dataset.category === selectedCategory) {
+                    if (btn.dataset.category === category) {
                         btn.classList.remove('active');
                     }
                 });
                 this.classList.add('active');
                 
-                // Filter products
-                productCards.forEach(card => {
-                    if (card.dataset.category === selectedCategory && 
-                        card.dataset.subcategory === selectedSubcategory) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                // Filter products and update URL
+                filterProducts(category, subcategory);
+                updateCurrentCategoryInputs(category, subcategory);
+                updateURL(category, subcategory);
             });
         });
+        
+        // Select category and subcategory from URL if exists
+        if (selectedCategory) {
+            const categoryButton = document.querySelector(`.category-item[data-category="${selectedCategory}"]`);
+            if (categoryButton) {
+                // Reset all states first
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                resetSubcategories();
+                
+                // Set active category
+                categoryButton.classList.add('active');
+                showSubcategoriesForCategory(selectedCategory);
+
+                if (selectedSubcategory) {
+                    const subcategoryButton = document.querySelector(`.subcategory-item[data-category="${selectedCategory}"][data-subcategory="${selectedSubcategory}"]`);
+                    if (subcategoryButton) {
+                        subcategoryButton.classList.add('active');
+                    }
+                }
+                
+                filterProducts(selectedCategory, selectedSubcategory);
+                updateCurrentCategoryInputs(selectedCategory, selectedSubcategory);
+            }
+        }
         
         // Cart popup
         const cartIcon = document.querySelector('.cart-icon');
@@ -402,16 +478,16 @@ if (isset($_SESSION['error'])) {
                             const itemElement = document.createElement('div');
                             itemElement.className = 'cart-popup-item';
                             itemElement.innerHTML = `
-                                <img src="img/products/${item.product_id}.jpg" alt="${item.name}" onerror="this.src='img/no-image.png'">
+                                <img src="img/products/${item.id}.jpg" alt="${item.name}" onerror="this.src='img/no-image.png'">
                                 <div class="cart-popup-details">
-                                    <h4>${item.name}</h4>
-                                    <p class="cart-popup-price">$${item.price.toFixed(2)}</p>
+                                    <h4>${item.product_name}</h4>
+                                    <p class="cart-popup-price">$${parseFloat(item.unit_price).toFixed(2)}</p>
                                     <p class="cart-popup-quantity">Qty: ${item.quantity}</p>
                                 </div>
                             `;
                             cartItemsContainer.appendChild(itemElement);
                             
-                            totalAmount += item.price * item.quantity;
+                            totalAmount += parseFloat(item.unit_price) * item.quantity;
                         });
                     }
                     

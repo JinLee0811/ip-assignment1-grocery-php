@@ -7,36 +7,38 @@ if (empty($_SESSION['cart'])) {
     exit();
 }
 
-// Get cart item information
+// Get cart items for display
 $cart_items = [];
 $total_amount = 0;
 
-foreach ($_SESSION['cart'] as $product_id => $quantity) {
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ?");
-    $stmt->execute([$product_id]);
-    $product = $stmt->fetch();
-    
-    if ($product) {
-        // Check stock
-        if ($product['in_stock'] < $quantity) {
-            $_SESSION['stock_error'] = "Not enough stock for '{$product['product_name']}'. Current stock: {$product['in_stock']}";
-            header('Location: cart.php');
-            exit();
-        }
+if (!empty($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $product_id => $quantity) {
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt->execute([$product_id]);
+        $product = $stmt->fetch();
         
-        $cart_items[] = [
-            'product_id' => $product_id,
-            'name' => $product['product_name'],
-            'price' => $product['unit_price'],
-            'quantity' => $quantity,
-            'subtotal' => $product['unit_price'] * $quantity
-        ];
-        $total_amount += $product['unit_price'] * $quantity;
+        if ($product) {
+            // Check stock
+            if ($product['in_stock'] < $quantity) {
+                $_SESSION['stock_error'] = "Not enough stock for '{$product['product_name']}'. Current stock: {$product['in_stock']}";
+                header('Location: cart.php');
+                exit();
+            }
+            
+            $cart_items[] = [
+                'id' => $product_id,
+                'name' => $product['product_name'],
+                'price' => $product['unit_price'],
+                'quantity' => $quantity,
+                'subtotal' => $product['unit_price'] * $quantity
+            ];
+            $total_amount += $product['unit_price'] * $quantity;
+        }
     }
 }
 
 // Process shipping information form
-$name = $email = $phone = $address = $city = $state = $zipcode = '';
+$name = $email = $phone = $address = $city = $state = $zipcode = $notes = '';
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -80,10 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['zipcode'] = 'Please enter your ZIP code.';
     }
     
+    $notes = trim($_POST['notes'] ?? '');
+    
     // Check stock again
     $stock_error = false;
     foreach ($_SESSION['cart'] as $product_id => $quantity) {
-        $stmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ?");
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
         $stmt->execute([$product_id]);
         $product = $stmt->fetch();
         
@@ -96,38 +100,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Process order if no errors
     if (empty($errors)) {
-        // 1. Save order information (would be stored in DB in production)
-        $order_id = 'ORD' . time() . rand(1000, 9999);
-        
-        // 2. Update stock
-        foreach ($_SESSION['cart'] as $product_id => $quantity) {
-            $stmt = $pdo->prepare("UPDATE products SET in_stock = in_stock - ? WHERE product_id = ?");
-            $stmt->execute([$quantity, $product_id]);
+        try {
+            $pdo->beginTransaction();
+            
+            // Generate order ID
+            $order_id = 'ORD' . time() . rand(1000, 9999);
+            
+            // Update product stock
+            foreach ($_SESSION['cart'] as $product_id => $quantity) {
+                $stmt = $pdo->prepare("UPDATE products SET in_stock = in_stock - ? WHERE id = ?");
+                $stmt->execute([$quantity, $product_id]);
+            }
+            
+            // Store order details in session for confirmation page
+            $_SESSION['order'] = [
+                'order_id' => $order_id,
+                'date' => date('Y-m-d H:i:s'),
+                'items' => $cart_items,
+                'total' => $total_amount,
+                'customer' => [
+                    'name' => $name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'address' => $address,
+                    'city' => $city,
+                    'state' => $state,
+                    'zipcode' => $zipcode,
+                    'notes' => $notes
+                ]
+            ];
+            
+            // Clear cart
+            $_SESSION['cart'] = [];
+            
+            $pdo->commit();
+            
+            // Redirect to order confirmation page
+            header('Location: order-confirmation.php');
+            exit();
+            
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $errors['system'] = 'An error occurred while processing your order. Please try again.';
         }
-        
-        // 3. Save order information in session (would be stored in DB in production)
-        $_SESSION['order'] = [
-            'order_id' => $order_id,
-            'items' => $cart_items,
-            'total' => $total_amount,
-            'customer' => [
-                'name' => $name,
-                'email' => $email,
-                'phone' => $phone,
-                'address' => $address,
-                'city' => $city,
-                'state' => $state,
-                'zipcode' => $zipcode
-            ],
-            'date' => date('Y-m-d H:i:s')
-        ];
-        
-        // 4. Clear cart
-        $_SESSION['cart'] = [];
-        
-        // 5. Redirect to order confirmation page
-        header('Location: order-confirmation.php');
-        exit();
     }
 }
 
@@ -271,7 +286,7 @@ foreach ($_SESSION['cart'] as $quantity) {
                     
                     <div class="form-group">
                         <label for="notes">Delivery Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"><?php echo htmlspecialchars($notes); ?></textarea>
                     </div>
                     
                     <div class="form-actions">
